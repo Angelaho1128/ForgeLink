@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Questrial&display=swap');
+
+.login-page-container {
+    font-family: 'DM Sans', sans-serif;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 50px;
+    box-sizing: border-box; 
+}
+
+.login-card {
+    background-color: #F5FAFF;
+    padding: 4rem;
+    border-radius: 1rem;
+    width: 700px;
+    height: 700px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 80%;
+    box-sizing: border-box;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    margin-top: -50px;
+    margin-bottom: -20px;
+    justify-content: center;
+    flex-direction: row; 
+    gap: 20px;
+}
+
+.logo-image {
+    display: block;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    aspect-ratio: 1/1;
+}
+
+.app-title {
+    width: 453px;
+    height: 100px;
+    flex-shrink: 0;
+    color: #478CD1;
+    text-align: center;
+    font-family: 'Questrial', sans-serif;
+    font-size: 100px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+    width: 453px;
+    max-width: 100%;
+}
+
+.input-label {
+    display: block;
+    color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 25px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 100%;
+    margin-bottom: 0.75rem;
+}
+
+.input-field {
+    width: 453px; 
+    height: 70px; 
+    flex-shrink: 0;
+    border-radius: 20px; 
+    background: #D7E6F5; 
+    border: none; 
+    padding: 0 20px;
+    color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 20px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.button-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 4rem; 
+    width: 453px; 
+    max-width: 100%;
+}
+
+.login-button,
+.signup-button {
+    width: 200px; 
+    height: 70px; 
+    flex-shrink: 0;
+    border-radius: 20px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box; 
+    font-family: 'DM Sans', sans-serif; 
+    font-size: 25px; 
+    font-style: normal;
+    font-weight: 400;
+    line-height: 100%;
+}
+
+.login-button {
+    background: #0A66C2;
+    color: #FFF;
+}
+
+.login-button:hover {
+    background-color: #08509c; 
+}
+
+.signup-button {
+    background: #D7E6F5;
+    color: #000;
+}
+
+.signup-button:hover {
+    background-color: #c0d3e5;
+}
+
+@media (max-width: 768px) {
+    .login-card {
+        width: 100%;
+        height: auto;
+        padding: 1.5rem;
+        max-width: 500px;
+    }
+
+    .logo-section {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .logo-image {
+        width: 50px;
+        height: 50px;
+    }
+
+    .app-title {
+        font-size: 60px;
+        width: 100%;
+        height: auto;
+        margin-bottom: 1.5rem;
+    }
+
+    .input-group,
+    .input-field,
+    .button-group {
+        width: 100%;
+    }
+
+    .input-label {
+        font-size: 20px;
+    }
+
+    .input-field {
+        height: 60px;
+        font-size: 18px;
+    }
+
+    .login-button,
+    .signup-button {
+        width: 48%;
+        height: 60px;
+        font-size: 20px;
+        padding: 0.5rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 1rem;
+    }
+
+    .logo-image {
+        width: 40px;
+        height: 40px;
+    }
+
+    .app-title {
+        font-size: 45px;
+    }
+
+    .input-label {
+        font-size: 18px;
+    }
+
+    .input-field {
+        height: 50px;
+        font-size: 16px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .login-button,
+    .signup-button {
+        width: 100%;
+        height: 50px;
+        font-size: 18px;
+    }
+}

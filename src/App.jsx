@@ -1,3 +1,12 @@
-export default function App() {
-  return <h1>HI</h1>;
-}
+import React from 'react';
+import LoginPage from './pages/Login.jsx';
+
+const App = () => {
+  return (
+    <div className="App">
+      <LoginPage />
+    </div>
+  );
+};
+
+export default App;
