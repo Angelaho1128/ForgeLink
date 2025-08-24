@@ -1,7 +1,7 @@
-import { apiFetch } from "./api";
+import { api } from "./api";
 
 export async function login(username, password) {
-  const data = await apiFetch("/api/auth/login", {
+  const data = await api("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
@@ -12,7 +12,7 @@ export async function login(username, password) {
 }
 
 export async function signup({ username, password, name, headline }) {
-  const data = await apiFetch("/api/auth/signup", {
+  const data = await api("/api/auth/signup", {
     method: "POST",
     body: JSON.stringify({ username, password, name, headline }),
   });

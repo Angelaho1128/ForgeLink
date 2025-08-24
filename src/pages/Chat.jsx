@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { getTarget, generateDraft } from "../utils/targets";
@@ -6,35 +6,45 @@ import "../styles/Chat.css";
 
 export default function Chat() {
   const { targetId } = useParams();
-  const { state } = useLocation(); // maybe contains { sources, profileUrl }
-  const ownerUserId = localStorage.getItem("ownerUserId");
-
-  const [target, setTarget] = useState(null);
-  const [messages, setMessages] = useState([]); // {role:'user'|'assistant'|'system', text, thinking?}
+  const { state } = useLocation(); // may contain { facts, sources, profileUrl }
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const introShown = useRef(false);
 
-  // load target + optionally show BrowserUse sources from route state
+  function pushIntroBubble({ facts = [], sources = [], profileUrl = "" }) {
+    if (introShown.current) return;
+    if (!facts.length && !sources.length && !profileUrl) return;
+    const text = [
+      "✅ Search finished.",
+      profileUrl ? `Best URL: ${profileUrl}` : "",
+      facts.length ? `\nHighlights:\n• ${facts.join("\n• ")}` : "",
+      sources.length
+        ? `\nSources:\n${sources.map((u, i) => `${i + 1}. ${u}`).join("\n")}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    setMessages((m) => [{ role: "system", text }, ...m]);
+    introShown.current = true;
+  }
+
+  // route state first for instant display
+  useEffect(() => {
+    if (state?.facts || state?.sources || state?.profileUrl)
+      pushIntroBubble(state);
+  }, [state]);
+
+  // fetch target to support refresh/direct visits
   useEffect(() => {
     (async () => {
       try {
         const { target } = await getTarget(targetId);
-        setTarget(target);
-        if (state?.sources && state.sources.length) {
-          setMessages((m) => [
-            ...m,
-            {
-              role: "system",
-              text:
-                "✅ BrowserUse search finished.\n" +
-                (state.profileUrl ? `Best URL: ${state.profileUrl}\n` : "") +
-                "Sources:\n" +
-                state.sources.map((u, i) => `${i + 1}. ${u}`).join("\n"),
-            },
-          ]);
-        }
-      } catch (e) {
-        /* ignore */
-      }
+        pushIntroBubble({
+          facts: target.facts || [],
+          sources: target.sources || [],
+          profileUrl: target.profileUrl || "",
+        });
+      } catch (_) {}
     })();
   }, [targetId]);
 
@@ -44,7 +54,6 @@ export default function Chat() {
     setMessages((m) => [...m, { role: "user", text: userText }]);
     setInput("");
 
-    // add a "thinking" bubble
     const thinkingId = `t-${Date.now()}`;
     setMessages((m) => [
       ...m,
@@ -53,20 +62,17 @@ export default function Chat() {
 
     try {
       const { draft } = await generateDraft({
-        ownerUserId,
         targetId,
         userPrompt: userText,
-        action: "email", // or "questions"
+        action: "email",
         tone: "warm",
       });
-      // replace the thinking bubble with the model output
       setMessages((m) =>
         m.map((msg) =>
           msg.id === thinkingId
             ? {
                 role: "assistant",
                 text: draft.body || (draft.questions || []).join("\n• "),
-                id: thinkingId,
               }
             : msg
         )
@@ -86,8 +92,6 @@ export default function Chat() {
     <div className="chat-container">
       <Sidebar />
       <main className="chat-main">
-        {target && <h2 className="target-name">{target.name}</h2>}
-
         <div className="messages">
           {messages.map((m, i) => (
             <div
@@ -105,7 +109,6 @@ export default function Chat() {
             </div>
           ))}
         </div>
-
         <div className="chat-input">
           <input
             className="input-box"

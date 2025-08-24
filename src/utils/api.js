@@ -1,20 +1,14 @@
-//where API is hosted, e.g., http://localhost:3000
-const API_BASE = import.meta.env.VITE_API_BASE || "";
+const BASE = import.meta.env.VITE_API_BASE || ""; // e.g., http://localhost:3000
 
-export async function apiFetch(path, opts = {}) {
-  const token = localStorage.getItem("token");
+export async function api(path, opts = {}) {
   const headers = {
     "Content-Type": "application/json",
     ...(opts.headers || {}),
   };
+  const token = localStorage.getItem("token");
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    data = null;
-  }
+  const res = await fetch(`${BASE}${path}`, { ...opts, headers });
+  const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
   return data;
 }

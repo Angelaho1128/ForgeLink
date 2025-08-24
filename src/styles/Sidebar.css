@@ -48,3 +48,40 @@
   color: #5b6b7a;
   font-style: italic;
 }
+.connections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.connection-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.connection {
+  flex: 1;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #e6f1ff;
+  border: none;
+  cursor: pointer;
+}
+.delete {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.delete:hover {
+  background: #fee2e2;
+} /* light red hover */
+.delete img {
+  width: 20px;
+  height: 20px;
+} /* icon displayed at 20px */

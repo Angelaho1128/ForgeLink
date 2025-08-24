@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { listTargets } from "../utils/targets.js";
+import { listTargets, deleteTarget } from "../utils/targets";
 import "../styles/Sidebar.css";
 
 export default function Sidebar() {
@@ -8,28 +8,38 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const ownerUserId = localStorage.getItem("ownerUserId");
+  const currentId = location.pathname.startsWith("/chat/")
+    ? location.pathname.split("/chat/")[1]
+    : null;
 
   const load = useCallback(async () => {
-    if (!ownerUserId) return setTargets([]);
     try {
-      const { targets } = await listTargets(ownerUserId);
+      const { targets } = await listTargets();
       setTargets(targets);
     } catch (e) {
       console.error(e);
     }
-  }, [ownerUserId]);
+  }, []);
 
-  // load on mount and whenever route changes (simple refresh)
   useEffect(() => {
     load();
   }, [load, location.key]);
-
-  // also listen for a custom “targets changed” signal
   useEffect(() => {
-    window.addEventListener("targets:changed", load);
-    return () => window.removeEventListener("targets:changed", load);
+    const f = () => load();
+    window.addEventListener("targets:changed", f);
+    return () => window.removeEventListener("targets:changed", f);
   }, [load]);
+
+  async function onDelete(id) {
+    if (!confirm("Delete this connection?")) return;
+    try {
+      await deleteTarget(id);
+      if (id === currentId) navigate("/enter-info");
+      load();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
 
   return (
     <aside className="fl-sidebar">
@@ -53,13 +63,26 @@ export default function Sidebar() {
           <div className="empty">No connections yet</div>
         )}
         {targets.map((t) => (
-          <button
-            key={t._id}
-            className="connection"
-            onClick={() => navigate(`/chat/${t._id}`)}
-          >
-            {t.name}
-          </button>
+          <div key={t._id} className="connection-row">
+            <button
+              className="connection"
+              onClick={() => navigate(`/chat/${t._id}`)}
+              title={t.headline || ""}
+            >
+              {t.name}
+            </button>
+            <button
+              className="delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(t._id);
+              }}
+              aria-label={`Delete ${t.name}`}
+              title="Delete"
+            >
+              <img src="/assets/removeIcon.png" alt="" />
+            </button>
+          </div>
         ))}
       </div>
     </aside>

@@ -1,28 +1,21 @@
-import { apiFetch } from "./api";
+import { api } from "./api";
 
-export function listTargets(ownerUserId) {
-  return apiFetch(
-    `/api/targets?ownerUserId=${encodeURIComponent(ownerUserId)}`
-  );
-}
-export function getTarget(id) {
-  return apiFetch(`/api/targets/${id}`);
-}
-export function resolveTarget({ ownerUserId, name, headline }) {
-  return apiFetch(`/api/targets/resolve`, {
+export const listTargets = () => api("/api/targets");
+export const getTarget = (id) => api(`/api/targets/${id}`);
+export const resolveTarget = ({ name, headline }) =>
+  api("/api/targets/resolve", {
     method: "POST",
-    body: JSON.stringify({ ownerUserId, name, headline }),
+    body: JSON.stringify({ name, headline }),
   });
-}
-export function generateDraft({
-  ownerUserId,
+export const generateDraft = ({
   targetId,
   userPrompt,
   action = "email",
   tone = "warm",
-}) {
-  return apiFetch(`/api/actions/generate`, {
+}) =>
+  api("/api/actions/generate", {
     method: "POST",
-    body: JSON.stringify({ ownerUserId, targetId, action, tone, userPrompt }),
+    body: JSON.stringify({ targetId, action, tone, userPrompt }),
   });
-}
+export const deleteTarget = (id) =>
+  api(`/api/targets/${id}`, { method: "DELETE" });

@@ -1,38 +1,119 @@
 const express = require("express");
+const path = require("path");
 const { spawn } = require("child_process");
+
 const { User, Target, Draft } = require("../models/User");
 const { extractFacts, relate, generateAction } = require("../services/ai");
-const router = express.Router();
+const requireAuth = require("../middleware/requireAuth");
 
+const router = express.Router();
+router.use(requireAuth); // All routes below require a valid JWT
+
+// ---- helpers ----
+function runBrowserUse(name, headline) {
+  return new Promise((resolve) => {
+    const py = process.env.PYTHON_BIN || "python3";
+    const script = path.join(process.cwd(), "scripts", "collect_profile.py");
+    const child = spawn(py, [script, name, headline], { cwd: process.cwd() });
+
+    let out = "",
+      err = "";
+    child.stdout.on("data", (d) => (out += d.toString()));
+    child.stderr.on("data", (d) => (err += d.toString()));
+    child.on("close", () => {
+      if (err) console.error("[browseruse]", err.trim());
+      try {
+        const json = JSON.parse(out);
+        resolve({
+          profileText: json.profileText || "",
+          sources: json.sources || [],
+          bestUrl: json.bestUrl || "",
+          confidence: json.confidence ?? 0,
+        });
+      } catch {
+        resolve({
+          profileText: out,
+          sources: [],
+          bestUrl: "",
+          confidence: 0.5,
+        });
+      }
+    });
+  });
+}
+
+// ---- list targets (sidebar) ----
+router.get("/targets", async (req, res, next) => {
+  try {
+    const ownerUserId = req.userId;
+    const targets = await Target.find({ ownerUserId })
+      .sort({ updatedAt: -1 })
+      .select("_id name headline");
+    res.json({ targets });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// ---- read one target (chat header / facts & sources) ----
+router.get("/targets/:id", async (req, res, next) => {
+  try {
+    const t = await Target.findById(req.params.id).select(
+      "_id name headline facts sources profileUrl ownerUserId profileText"
+    );
+    if (!t) return res.status(404).json({ error: "Target not found" });
+    if (t.ownerUserId.toString() !== req.userId)
+      return res.status(403).json({ error: "Forbidden" });
+
+    res.json({
+      target: {
+        _id: t._id,
+        name: t.name,
+        headline: t.headline,
+        facts: t.facts || [],
+        sources: t.sources || [],
+        profileUrl: t.profileUrl || "",
+        profileText: t.profileText || "",
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// ---- create/resolve (BrowserUse -> facts) ----
 router.post("/targets/resolve", async (req, res, next) => {
   try {
-    const { ownerUserId, name, headline } = req.body;
-    if (!ownerUserId || !name || !headline) {
-      return res
-        .status(400)
-        .json({ error: "ownerUserId, name, headline required" });
-    }
+    const ownerUserId = req.userId;
+    const { name, headline } = req.body;
+    if (!name || !headline)
+      return res.status(400).json({ error: "name and headline required" });
 
-    const {
-      profileText,
-      sources = [],
-      bestUrl = "",
-      confidence = 0.5,
-    } = await runBrowserUse(name, headline);
+    // 1) Run BrowserUse to collect public info
+    const { profileText, sources, bestUrl, confidence } = await runBrowserUse(
+      name,
+      headline
+    );
 
-    const target = await Target.create({
+    // 2) Create target
+    let target = await Target.create({
       ownerUserId,
       name,
       headline,
-      profileUrl: bestUrl,
-      sources,
       profileText,
+      sources,
+      profileUrl: bestUrl,
       confidence,
-      lastFetchedAt: new Date(),
     });
 
-    target.facts = await extractFacts(profileText);
-    await target.save();
+    // 3) Extract bullet facts with Gemini
+    try {
+      const facts = await extractFacts(profileText);
+      target.facts = facts;
+      await target.save();
+    } catch (e) {
+      console.error("extractFacts failed", e);
+    }
 
     res.json({ target });
   } catch (e) {
@@ -40,19 +121,22 @@ router.post("/targets/resolve", async (req, res, next) => {
   }
 });
 
+// ---- generate draft (email/questions) ----
 router.post("/actions/generate", async (req, res, next) => {
   try {
+    const ownerUserId = req.userId;
     const {
-      ownerUserId,
       targetId,
       action = "email",
       tone = "warm",
       userPrompt = "",
     } = req.body;
-    const user = await User.findById(ownerUserId);
-    const target = await Target.findById(targetId);
-    if (!user || !target)
-      return res.status(404).json({ error: "User or Target not found" });
+
+    const user = await User.findById(ownerUserId).lean();
+    const target = await Target.findById(targetId).lean();
+    if (!target) return res.status(404).json({ error: "Target not found" });
+    if (target.ownerUserId.toString() !== ownerUserId)
+      return res.status(403).json({ error: "Forbidden" });
 
     const { overlaps, angles } = await relate(user, target.facts || []);
     const out = await generateAction({
@@ -63,70 +147,40 @@ router.post("/actions/generate", async (req, res, next) => {
       angles,
       tone,
       userPrompt,
+      // extra grounding context from BrowserUse
+      facts: target.facts || [],
+      sources: target.sources || [],
+      profileUrl: target.profileUrl || "",
+      profileText: target.profileText || "",
     });
 
-    const draft = await Draft.create({
+    // optionally persist as a Draft (comment out if you don’t want to save)
+    await Draft.create({
       ownerUserId,
       targetId,
-      action,
       subject: out.subject || "",
       body: out.body || "",
       questions: out.questions || [],
     });
 
-    res.json({ draft });
+    res.json({ draft: out });
   } catch (e) {
     next(e);
   }
 });
 
-// List previous connections for a user
-router.get("/targets", async (req, res, next) => {
+// ---- delete a target (trash icon) ----
+router.delete("/targets/:id", async (req, res, next) => {
   try {
-    const { ownerUserId } = req.query;
-    if (!ownerUserId)
-      return res.status(400).json({ error: "ownerUserId required" });
-    const targets = await Target.find({ ownerUserId })
-      .sort({ updatedAt: -1 })
-      .select("_id name headline");
-    res.json({ targets });
+    const t = await Target.findById(req.params.id);
+    if (!t) return res.status(404).json({ error: "Target not found" });
+    if (t.ownerUserId.toString() !== req.userId)
+      return res.status(403).json({ error: "Forbidden" });
+    await t.deleteOne();
+    res.json({ ok: true });
   } catch (e) {
     next(e);
   }
 });
-
-// Get one target (to show name/sources in Chat)
-router.get("/targets/:id", async (req, res, next) => {
-  try {
-    const target = await Target.findById(req.params.id).select(
-      "_id name headline sources profileUrl facts"
-    );
-    if (!target) return res.status(404).json({ error: "Target not found" });
-    res.json({ target });
-  } catch (e) {
-    next(e);
-  }
-});
-
-function runBrowserUse(name, headline) {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(
-      "python3",
-      ["scripts/collect_profile.py", name, headline],
-      { cwd: process.cwd() }
-    );
-    let buf = "";
-    proc.stdout.on("data", (d) => (buf += d.toString()));
-    proc.stderr.on("data", (d) => console.error("[browseruse]", d.toString()));
-    proc.on("close", (code) => {
-      if (code !== 0) return reject(new Error("browseruse failed"));
-      try {
-        resolve(JSON.parse(buf));
-      } catch {
-        resolve({ profileText: buf });
-      }
-    });
-  });
-}
 
 module.exports = router;

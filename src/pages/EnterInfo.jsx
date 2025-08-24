@@ -4,20 +4,19 @@ import Sidebar from "../components/Sidebar";
 import { resolveTarget } from "../utils/targets";
 import "../styles/EnterInfo.css";
 
-const EnterInfo = () => {
+export default function EnterInfo() {
   const [name, setName] = useState("");
   const [headline, setHeadline] = useState("");
-  const ownerUserId = localStorage.getItem("ownerUserId");
   const navigate = useNavigate();
 
   async function onSubmit() {
-    if (!ownerUserId || !name || !headline) return;
+    if (!name || !headline) return;
     try {
-      const { target } = await resolveTarget({ ownerUserId, name, headline });
-      // refresh sidebar and go to chat, passing sources so we can show them right away
+      const { target } = await resolveTarget({ name, headline });
       window.dispatchEvent(new Event("targets:changed"));
       navigate(`/chat/${target._id}`, {
         state: {
+          facts: target.facts || [],
           sources: target.sources || [],
           profileUrl: target.profileUrl || "",
         },
@@ -54,5 +53,4 @@ const EnterInfo = () => {
       </main>
     </div>
   );
-};
-export default EnterInfo;
+}

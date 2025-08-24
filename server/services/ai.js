@@ -84,14 +84,24 @@ const generateAction = async ({
   angles,
   tone = "warm",
   userPrompt = "",
+  facts = [],
+  sources = [],
+  profileUrl = "",
+  profileText = "",
 }) => {
   const model = await getModel();
+  const clip = (s, n = 2000) =>
+    s && s.length > n ? s.slice(0, n) + "…" : s || "";
   const prompt = `Action: ${action}
 Tone: ${tone}
 Sender: ${you?.name || ""} — ${you?.headline || ""}
 Overlaps: ${overlaps.join("; ")}
 Angles: ${angles.join("; ")}
 Target: ${targetName}
+Facts: ${facts.join("; ")}
+Best URL: ${profileUrl}
+Sources: ${sources.join(" | ")}
+Profile excerpt: ${clip(profileText)}
 User prompt (constraints/topics): ${userPrompt}
 Return ONLY JSON:
 {
