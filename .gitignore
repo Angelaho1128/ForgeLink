@@ -1,1 +1,4 @@
 node_modules/
+python/
+files.yaml
+.env
