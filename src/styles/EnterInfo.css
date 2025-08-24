@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Questrial&display=swap');
+
+.enterinfo-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.sidebar {
+  width: 387px;
+  background: #F5FAFF;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 1rem;
+}
+
+.sidebar-title {
+  font-family: 'Questrial', sans-serif;
+  font-size: 50px;
+  color: #478CD1;
+  margin-bottom: 2rem;
+}
+
+.sidebar-btn {
+  background: #D7E6F5;
+  border: none;
+  border-radius: 20px;
+  height: 50px;
+  font-family: 'Questrial', sans-serif;
+  font-size: 30px;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+.sidebar-subtitle {
+  font-size: 30px;
+  font-family: 'Questrial', sans-serif;
+  margin-bottom: 1rem;
+}
+
+.connection-btn {
+  background: #D7E6F5;
+  border: none;
+  border-radius: 20px;
+  height: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 25px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.main-section {
+  flex: 1;
+  padding: 3rem;
+  text-align: center;
+}
+
+.main-heading {
+  font-family: 'Questrial', sans-serif;
+  font-size: 50px;
+  color: #478CD1;
+  margin-bottom: 2rem;
+}
+
+.main-input {
+  width: 634px;
+  height: 70px;
+  border-radius: 20px;
+  background: #E5F2FF;
+  border: none;
+  padding: 0 20px;
+  font-family: 'Questrial', sans-serif;
+  font-size: 25px;
+  margin-bottom: 1.5rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.submit-btn {
+  width: 200px;
+  height: 70px;
+  border-radius: 20px;
+  background: #0A66C2;
+  color: #FFF;
+  border: none;
+  font-size: 25px;
+  cursor: pointer;
+}

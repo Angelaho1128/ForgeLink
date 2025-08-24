@@ -1,54 +1,48 @@
-import React from 'react';
-import '../styles/Login.css';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/Login.css";
 
-const LoginPage = () => {
+function Login() {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate("/enter-info");
+  };
+
+  const handleSignUp = () => {
+    navigate("/signup");
+  };
+
   return (
     <div className="login-page-container">
-        <div className="login-card">
+      <div className="login-card">
         <div className="logo-section">
-          <img src="/assets/icon.png" alt="ForgeLink Logo" className="logo-image" />
+          {/* Just reference the path directly, no import needed */}
+          <img src="/assets/icon.png" alt="Logo" className="logo-image" />
           <h1 className="app-title">ForgeLink</h1>
         </div>
 
-        <form>
-          <div className="input-group">
-            <label htmlFor="username" className="input-label">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              className="input-field"
-              placeholder=""
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="password" className="input-label">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="input-field"
-              placeholder=""
-            />
-          </div>
-          <div className="button-group">
-            <button
-              type="submit"
-              className="login-button"
-            >
-              Log in
-            </button>
-            <button
-              type="button"
-              className="signup-button"
-            >
-              Sign up
-            </button>
-          </div>
-        </form>
+        <div className="input-group">
+          <label className="input-label">Email</label>
+          <input type="text" className="input-field" placeholder="Enter your email" />
         </div>
+
+        <div className="input-group">
+          <label className="input-label">Password</label>
+          <input type="password" className="input-field" placeholder="Enter your password" />
+        </div>
+
+        <div className="button-group">
+          <button type="button" className="login-button" onClick={handleLogin}>
+            Log In
+          </button>
+          <button type="button" className="signup-button" onClick={handleSignUp}>
+            Sign Up
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
-export default LoginPage;
+export default Login;
