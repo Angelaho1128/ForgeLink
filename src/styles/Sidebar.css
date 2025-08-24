@@ -17,11 +17,13 @@
   height: 28px;
 }
 .brand {
-  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  margin: 40 0 20;
   color: #3d79d8;
   font-weight: 700;
 }
 .primary.ghost {
+  font-family: "DM Sans", sans-serif;
   width: 100%;
   padding: 10px 14px;
   border-radius: 14px;
@@ -29,7 +31,8 @@
   border: none;
 }
 .section-title {
-  margin: 20px 0 10px;
+  font-family: "DM Sans", sans-serif;
+  margin: 40px 0 10px;
   font-weight: 600;
 }
 .connections {
@@ -45,6 +48,7 @@
   border: none;
 }
 .empty {
+  font-family: "DM Sans", sans-serif;
   color: #5b6b7a;
   font-style: italic;
 }

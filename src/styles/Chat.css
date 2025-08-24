@@ -72,6 +72,7 @@
 }
 
 .message {
+  font-family: "DM Sans", sans-serif;
   font-size: 25px;
   margin-bottom: 1rem;
   color: #000;
@@ -85,6 +86,7 @@
 }
 
 .input-box {
+  font-family: "DM Sans", sans-serif;
   width: 634px;
   height: 70px;
   border-radius: 20px;
@@ -96,6 +98,7 @@
 }
 
 .send-btn {
+  font-family: "DM Sans", sans-serif;
   width: 200px;
   height: 70px;
   border-radius: 20px;
@@ -107,6 +110,7 @@
 }
 
 .target-name {
+  font-family: "DM Sans", sans-serif;
   margin: 8px 0 12px;
   color: #3d79d8;
 }
@@ -171,6 +175,7 @@
 }
 
 .target-summary {
+  font-family: "DM Sans", sans-serif;
   max-width: 820px;
   border: 1px solid #e5eefc;
   background: #f8fbff;
