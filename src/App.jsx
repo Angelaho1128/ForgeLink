@@ -5,15 +5,13 @@ import EnterInfo from "./pages/EnterInfo.jsx";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx";
 
-function App() {
+export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/chat" element={<Chat />} />
       <Route path="/enter-info" element={<EnterInfo />} />
+      <Route path="/chat/:targetId" element={<Chat />} />
     </Routes>
   );
 }
-
-export default App;

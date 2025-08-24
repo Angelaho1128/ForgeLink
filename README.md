@@ -29,6 +29,8 @@ GOOGLE_API_KEY=""
 MONGODB_URI=""
 NODE_ENV=development
 PYTHON_BIN=python/.venv/bin/python
+JWT_SECRET=
+VITE_API_BASE=
 ```
 
 API: local host port 3000

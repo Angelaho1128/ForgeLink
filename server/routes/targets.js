@@ -80,6 +80,34 @@ router.post("/actions/generate", async (req, res, next) => {
   }
 });
 
+// List previous connections for a user
+router.get("/targets", async (req, res, next) => {
+  try {
+    const { ownerUserId } = req.query;
+    if (!ownerUserId)
+      return res.status(400).json({ error: "ownerUserId required" });
+    const targets = await Target.find({ ownerUserId })
+      .sort({ updatedAt: -1 })
+      .select("_id name headline");
+    res.json({ targets });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// Get one target (to show name/sources in Chat)
+router.get("/targets/:id", async (req, res, next) => {
+  try {
+    const target = await Target.findById(req.params.id).select(
+      "_id name headline sources profileUrl facts"
+    );
+    if (!target) return res.status(404).json({ error: "Target not found" });
+    res.json({ target });
+  } catch (e) {
+    next(e);
+  }
+});
+
 function runBrowserUse(name, headline) {
   return new Promise((resolve, reject) => {
     const proc = spawn(

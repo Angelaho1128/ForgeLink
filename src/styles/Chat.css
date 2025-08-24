@@ -1,12 +1,12 @@
 .chat-container {
   display: flex;
   min-height: 100vh;
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
 }
 
 .sidebar {
   width: 387px;
-  background: #F5FAFF;
+  background: #f5faff;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -19,18 +19,18 @@
 }
 
 .sidebar-title {
-  font-family: 'Questrial', sans-serif;
+  font-family: "Questrial", sans-serif;
   font-size: 50px;
-  color: #478CD1;
+  color: #478cd1;
   margin-bottom: 2rem;
 }
 
 .sidebar-btn {
-  background: #D7E6F5;
+  background: #d7e6f5;
   border: none;
   border-radius: 20px;
   height: 50px;
-  font-family: 'Questrial', sans-serif;
+  font-family: "Questrial", sans-serif;
   font-size: 30px;
   margin-bottom: 1rem;
   cursor: pointer;
@@ -38,16 +38,16 @@
 
 .sidebar-subtitle {
   font-size: 30px;
-  font-family: 'Questrial', sans-serif;
+  font-family: "Questrial", sans-serif;
   margin-bottom: 1rem;
 }
 
 .connection-btn {
-  background: #D7E6F5;
+  background: #d7e6f5;
   border: none;
   border-radius: 20px;
   height: 50px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 25px;
   margin-bottom: 0.5rem;
   cursor: pointer;
@@ -65,6 +65,10 @@
   flex: 1;
   overflow-y: auto;
   margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 16px;
 }
 
 .message {
@@ -84,20 +88,78 @@
   width: 634px;
   height: 70px;
   border-radius: 20px;
-  background: #E5F2FF;
+  background: #e5f2ff;
   border: none;
   padding: 0 20px;
   font-size: 25px;
-  color: #635A5A;
+  color: #635a5a;
 }
 
 .send-btn {
   width: 200px;
   height: 70px;
   border-radius: 20px;
-  background: #0A66C2;
-  color: #FFF;
+  background: #0a66c2;
+  color: #fff;
   border: none;
   font-size: 25px;
   cursor: pointer;
+}
+
+.target-name {
+  margin: 8px 0 12px;
+  color: #3d79d8;
+}
+
+.bubble {
+  max-width: 720px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  white-space: pre-wrap;
+}
+.bubble.user {
+  align-self: flex-end;
+  background: #e8f2ff;
+}
+.bubble.assistant {
+  align-self: flex-start;
+  background: #f2f5f7;
+}
+.bubble.system {
+  align-self: center;
+  background: #fff7e6;
+  border: 1px solid #ffe0a3;
+}
+
+.bubble.thinking {
+  position: relative;
+  color: #5a6b7a;
+}
+.bubble.thinking .dots {
+  margin-left: 6px;
+  display: inline-flex;
+  gap: 3px;
+  position: relative;
+  top: 1px;
+}
+.bubble.thinking .dots span {
+  animation: blink 1.2s infinite;
+}
+.bubble.thinking .dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.bubble.thinking .dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes blink {
+  0%,
+  20% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
