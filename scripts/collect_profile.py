@@ -1,5 +1,6 @@
 import sys, json, asyncio
-from dotenv import load_dotenv; load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 from browser_use import Agent
 from browser_use.llm import ChatGoogle
