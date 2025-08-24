@@ -23,8 +23,8 @@ function Login() {
         </div>
 
         <div className="input-group">
-          <label className="input-label">Email</label>
-          <input type="text" className="input-field" placeholder="Enter your email" />
+          <label className="input-label">Username</label>
+          <input type="text" className="input-field" placeholder="Enter your username" />
         </div>
 
         <div className="input-group">
