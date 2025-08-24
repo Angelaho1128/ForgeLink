@@ -2,7 +2,7 @@ Download dependencies in npm:
 
 ```bash
 npm init -y
-npm i react react-dom cors express mongoose @google/generative-ai
+npm i react react-dom react-router-dom cors express mongoose @google/generative-ai
 npm i -D vite @vitejs/plugin-react concurrently
 ```
 
