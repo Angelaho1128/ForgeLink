@@ -2,7 +2,14 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    email: String,
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    passwordHash: { type: String, required: true },
     name: String,
     headline: String, // your headline / positioning
     experiences: [String], // bullets you’ll compare against targets

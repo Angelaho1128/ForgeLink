@@ -15,6 +15,8 @@ export default function App_test() {
     setLoading(true);
     setError("");
     setDraft(null);
+    const ownerUserId = localStorage.getItem("ownerUserId");
+    // send ownerUserId in the body, as your router expects
     try {
       const res = await fetch("/api/targets/resolve", {
         method: "POST",

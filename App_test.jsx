@@ -16,7 +16,7 @@ export default function App_test() {
     setDraft(null);
     try {
       const res = await fetch("/api/targets/resolve", {
-        method: "OST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ownerUserId, name, headline }),
       });
