@@ -22,6 +22,7 @@ const Chat = () => {
         <button className="sidebar-btn">Add new connections</button>
         <h3 className="sidebar-subtitle">Previous connections</h3>
         <button className="connection-btn">Angela Ho</button>
+        <button className="connection-btn">David Lee</button>
         <button className="connection-btn">Vienna Zhao</button>
       </aside>
 
