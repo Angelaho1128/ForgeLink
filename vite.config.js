@@ -19,7 +19,7 @@ export default defineConfig({
     open: true,
     proxy: {
       // forwards /api requests to Node server during dev
-      "/api": "http://localhost:8000",
+      "/api": "http://localhost:3000",
     },
   },
 });
