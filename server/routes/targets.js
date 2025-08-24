@@ -3,7 +3,12 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const { User, Target, Draft } = require("../models/User");
-const { extractFacts, relate, generateAction } = require("../services/ai");
+const {
+  extractFacts,
+  relate,
+  generateAction,
+  classifyAction,
+} = require("../services/ai");
 const requireAuth = require("../middleware/requireAuth");
 
 const router = express.Router();
@@ -124,10 +129,10 @@ router.post("/targets/resolve", async (req, res, next) => {
 // ---- generate draft (email/questions) ----
 router.post("/actions/generate", async (req, res, next) => {
   try {
-    const ownerUserId = req.userId;
+    const ownerUserId = req.userId; // JWT
     const {
       targetId,
-      action = "email",
+      action = "auto",
       tone = "warm",
       userPrompt = "",
     } = req.body;
@@ -138,32 +143,25 @@ router.post("/actions/generate", async (req, res, next) => {
     if (target.ownerUserId.toString() !== ownerUserId)
       return res.status(403).json({ error: "Forbidden" });
 
+    const picked =
+      action && action !== "auto" ? action : await classifyAction(userPrompt);
+
     const { overlaps, angles } = await relate(user, target.facts || []);
     const out = await generateAction({
-      action,
+      action: picked,
       you: user,
       targetName: target.name,
       overlaps,
       angles,
       tone,
       userPrompt,
-      // extra grounding context from BrowserUse
       facts: target.facts || [],
       sources: target.sources || [],
       profileUrl: target.profileUrl || "",
       profileText: target.profileText || "",
     });
 
-    // optionally persist as a Draft (comment out if you don’t want to save)
-    await Draft.create({
-      ownerUserId,
-      targetId,
-      subject: out.subject || "",
-      body: out.body || "",
-      questions: out.questions || [],
-    });
-
-    res.json({ draft: out });
+    res.json({ draft: { action: picked, ...out } });
   } catch (e) {
     next(e);
   }

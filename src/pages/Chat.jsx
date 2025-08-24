@@ -64,7 +64,7 @@ export default function Chat() {
       const { draft } = await generateDraft({
         targetId,
         userPrompt: userText,
-        action: "email",
+        action: "auto",
         tone: "warm",
       });
       setMessages((m) =>

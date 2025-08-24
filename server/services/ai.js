@@ -1,3 +1,4 @@
+// server/services/ai.js
 require("dotenv").config();
 
 async function getModel() {
@@ -6,30 +7,23 @@ async function getModel() {
   return genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 }
 
-// --- robust JSON parsing helper ---
+// --- robust JSON parsing helper (keep if you already had it) ---
 function parseJSONLax(text, fallbackKey) {
-  // 1) straight JSON
   try {
     return JSON.parse(text);
   } catch {}
-
-  // 2) fenced ```json ... ```
   const fence = text.match(/```json\s*([\s\S]*?)```/i);
   if (fence) {
     try {
       return JSON.parse(fence[1]);
     } catch {}
   }
-
-  // 3) first {...} block
   const brace = text.match(/\{[\s\S]*\}$/m) || text.match(/\{[\s\S]*\}/m);
   if (brace) {
     try {
       return JSON.parse(brace[0]);
     } catch {}
   }
-
-  // 4) fallback: turn bullet-ish lines into an array
   const lines = text
     .split(/\r?\n/)
     .map((s) => s.replace(/^[\s>*•\-–]+/, "").trim())
@@ -38,12 +32,50 @@ function parseJSONLax(text, fallbackKey) {
 }
 
 const genCfg = { responseMimeType: "application/json" };
-// If you’re on a newer SDK, you can add a schema too:
-// const genCfg = {
-//   responseMimeType: 'application/json',
-//   responseSchema: { type: 'object', properties: { facts: { type: 'array', items: { type: 'string' } } }, required: ['facts'] }
-// };
 
+// ---------------- NEW: classifyAction ----------------
+const classifyAction = async (userPrompt = "") => {
+  const model = await getModel();
+  const prompt = `Classify the user's request into exactly one action:
+- "email" for drafting a cold email
+- "questions" for producing tailored questions to ask the person
+- "message" for a short DM/intro note (non-email)
+- "summary" for bullet talking points / highlights
+
+Rules:
+- Do NOT choose "email" unless the user clearly asks for an email.
+- Return ONLY JSON: {"action":"email"|"questions"|"message"|"summary"}.
+
+User prompt:
+${userPrompt}`;
+
+  const r = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: genCfg,
+  });
+  const out = parseJSONLax(r.response.text());
+  let act = (out.action || "").toLowerCase();
+
+  const allowed = ["email", "questions", "message", "summary"];
+  if (!allowed.includes(act)) {
+    // lightweight keyword fallback
+    if (/\b(question|questions|ask|interview)\b/i.test(userPrompt))
+      act = "questions";
+    else if (
+      /\bsummary|summarize|bullets|talking points|highlights\b/i.test(
+        userPrompt
+      )
+    )
+      act = "summary";
+    else if (/\bmessage|dm|note|intro(duction)?\b/i.test(userPrompt))
+      act = "message";
+    else if (/\bemail|mail\b/i.test(userPrompt)) act = "email";
+    else act = "summary";
+  }
+  return act;
+};
+
+// ---------------- existing extract/relate (keep yours) ----------------
 const extractFacts = async (profileText) => {
   const model = await getModel();
   const prompt = `Extract 5–10 concise bullets (role, company, skills, notable projects) from the text below.
@@ -63,7 +95,7 @@ const relate = async (you, facts) => {
   const prompt = `You: ${you?.headline || ""}; experiences: ${(
     you?.experiences || []
   ).join("; ")}
-Target facts: ${facts.join("; ")}
+Target facts: ${(facts || []).join("; ")}
 Return ONLY JSON: {"overlaps": string[], "angles": string[]}`;
   const r = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -76,6 +108,7 @@ Return ONLY JSON: {"overlaps": string[], "angles": string[]}`;
   };
 };
 
+// ---------------- tightened generateAction ----------------
 const generateAction = async ({
   action,
   you,
@@ -92,33 +125,54 @@ const generateAction = async ({
   const model = await getModel();
   const clip = (s, n = 2000) =>
     s && s.length > n ? s.slice(0, n) + "…" : s || "";
-  const prompt = `Action: ${action}
+  const prompt = `You must strictly follow the action type. Never format like an email unless action="email".
+
+Action: ${action}
 Tone: ${tone}
 Sender: ${you?.name || ""} — ${you?.headline || ""}
+Target: ${targetName}
 Overlaps: ${overlaps.join("; ")}
 Angles: ${angles.join("; ")}
-Target: ${targetName}
 Facts: ${facts.join("; ")}
 Best URL: ${profileUrl}
 Sources: ${sources.join(" | ")}
 Profile excerpt: ${clip(profileText)}
-User prompt (constraints/topics): ${userPrompt}
+User prompt: ${userPrompt}
+
+Output policy:
+- If action="email": produce a professional cold email with greeting and a concise subject and a short sign-off.
+- If action="questions": produce ONLY 3–6 tailored questions, no greeting, no subject, no sign-off.
+- If action="message": produce a short, informal DM (3–6 sentences), no subject, no email formatting.
+- If action="summary": produce 5–8 bullet talking points (no email formatting).
+
 Return ONLY JSON:
 {
-  "subject": string,   // empty if not an email
-  "body": string,      // main text
-  "questions": string[] // 3–5 tailored questions if action = "questions"
+  "subject": string,    // MUST be non-empty ONLY if action="email"; otherwise ""
+  "body": string,       // Email body or DM or bullet summary text. MUST be "" when action="questions".
+  "questions": string[] // ONLY when action="questions"; otherwise []
 }`;
+
   const r = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: genCfg,
   });
   const out = parseJSONLax(r.response.text());
-  return {
-    subject: typeof out.subject === "string" ? out.subject : "",
-    body: typeof out.body === "string" ? out.body : "",
-    questions: Array.isArray(out.questions) ? out.questions : [],
-  };
+
+  // enforce policy server-side too
+  const safe = { subject: "", body: "", questions: [] };
+  const A = (action || "").toLowerCase();
+  if (A === "email") {
+    safe.subject = typeof out.subject === "string" ? out.subject : "";
+    safe.body = typeof out.body === "string" ? out.body : "";
+  } else if (A === "questions") {
+    safe.questions = Array.isArray(out.questions) ? out.questions : [];
+  } else if (A === "message" || A === "summary") {
+    safe.body = typeof out.body === "string" ? out.body : "";
+  } else {
+    // fallback: treat unknown as summary
+    safe.body = typeof out.body === "string" ? out.body : "";
+  }
+  return safe;
 };
 
-module.exports = { extractFacts, relate, generateAction };
+module.exports = { extractFacts, relate, generateAction, classifyAction };

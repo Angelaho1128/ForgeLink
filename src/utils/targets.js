@@ -10,7 +10,7 @@ export const resolveTarget = ({ name, headline }) =>
 export const generateDraft = ({
   targetId,
   userPrompt,
-  action = "email",
+  action = "auto",
   tone = "warm",
 }) =>
   api("/api/actions/generate", {
